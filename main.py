@@ -1,5 +1,6 @@
 import discord
 import jelonki
+import linie
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -11,8 +12,7 @@ class MyClient(discord.Client):
 
         try:
             if str(payload.emoji) == "♻️":
-                print(payload)
-                # print(payload.user_id)
+                print(payload.user_id)
         except discord.HTTPException:
             pass
 
@@ -25,11 +25,23 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$test'):
             gameboard = jelonki.generate_field()
+
             gameboard = jelonki.randomize_field(gameboard)
             jelonki.print_field(gameboard)
             embedMsg = discord.embeds.Embed(title="nie wiem jakaś gra", description=jelonki.print_discord_field(gameboard))
-            await message.channel.send(embed=embedMsg)
 
+            await message.channel.send(embed=embedMsg)
+            rezultat = linie.check(1, gameboard, w)
+            print('ELUWINA')
+            while rezultat[2]:
+                print(rezultat[2])
+                gameboard = jelonki.regenerate_fields(gameboard, w)
+                linie.check(1, gameboard, w)
+                embedMsg = discord.embeds.Embed(title="nie wiem jakaś gra",
+                                                description=jelonki.print_discord_field(gameboard))
+
+                await message.channel.send(embed=embedMsg)
+            await message.add_reaction("♻")
 
 client = MyClient()
 
