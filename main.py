@@ -7,12 +7,15 @@ class MyClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_raw_reaction_add(self, payload):
-        if payload.user_id != self.user.id:
+        if payload.user_id == self.user.id:
             return
 
         try:
             if str(payload.emoji) == "♻️":
-                print(payload.user_id)
+                channel = client.get_channel(payload.channel_id)
+                message = await channel.fetch_message(payload.message_id)
+                await message.clear_reactions()
+                # TODO: set emoji to execute reroll
         except discord.HTTPException:
             pass
 
