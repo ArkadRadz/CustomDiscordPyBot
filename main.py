@@ -15,6 +15,7 @@ class MyClient(discord.Client):
                 channel = client.get_channel(payload.channel_id)
                 message = await channel.fetch_message(payload.message_id)
                 await message.clear_reactions()
+                print(message)
                 # TODO: set emoji to execute reroll
         except discord.HTTPException:
             pass
@@ -48,6 +49,9 @@ class MyClient(discord.Client):
 
 client = MyClient()
 
-token = open("token.txt", "r").read()
+try:
+    token = open("token.txt", "r").read()
+except IOError:
+    print("File not accessible. Please create a token.txt with your discord token in it.")
 
 client.run(token)
