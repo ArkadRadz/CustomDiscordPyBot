@@ -3,11 +3,15 @@ import jelonki
 import linie
 import users
 import re
+import asyncio
+from datetime import datetime
+
 
 def get_printable_user_cash(user_id):
     user_cash = int(users.read_user_data(user_id)) / 100
 
     return str(user_cash)
+
 
 def RepresentsInt(s):
     try:
@@ -16,7 +20,12 @@ def RepresentsInt(s):
     except ValueError:
         return False
 
+
 class MyClient(discord.Client):
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.bg_task = self.loop.create_task(self.godzina_task())
+
     last_hajs_message_id = 0
     clearable_channel_id = 0
 
@@ -74,7 +83,8 @@ class MyClient(discord.Client):
 
             hajs = re.search("\d+gr", message.content)
             if None == user_id or None == hajs:
-                await message.channel.send('HALO POLICJA OSZUKUJO, NIE PODAJO UŻYTKOWNIKA [@uzytkownik] ANI/LUB HAJSU [liczba naturalna z końcówką gr np. 100gr]')
+                await message.channel.send(
+                    'HALO POLICJA OSZUKUJO, NIE PODAJO UŻYTKOWNIKA [@uzytkownik] ANI/LUB HAJSU [liczba naturalna z końcówką gr np. 100gr]')
                 return
 
             user_id_number = re.search("\d+", user_id.group()).group()
@@ -122,6 +132,19 @@ class MyClient(discord.Client):
 
                 await message.channel.send(embed=embed_msg)
             await message.add_reaction("♻")
+
+    # async def godzina_task(self):
+    #     await self.wait_until_ready()
+    #     while not self.is_closed():
+    #         now = datetime.now()
+    #         current_time = now.strftime("%H:%M")
+    #         print (current_time)
+    #         if current_time == "21:37":
+    #             channel = self.get_channel()
+    #             await channel.send("GODZINA")
+    #             await channel.send("https://tenor.com/view/rat-jam-gif-19408520")
+    #         else:
+    #             await asyncio.sleep(30)
 
 
 client = MyClient()
