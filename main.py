@@ -1,6 +1,14 @@
 import discord
 import jelonki
 import linie
+import users
+
+
+def get_printable_user_cash(user_id):
+    user_cash = int(users.read_user_data(user_id)) / 100
+
+    return str(user_cash)
+
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -11,12 +19,23 @@ class MyClient(discord.Client):
             return
 
         try:
+            channel = client.get_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+
+            # TODO: check why bot ignores this comparison, as in it returns false
             if str(payload.emoji) == "♻️":
-                channel = client.get_channel(payload.channel_id)
-                message = await channel.fetch_message(payload.message_id)
                 await message.clear_reactions()
-                print(message)
+
+                embed_msg = discord.embeds.Embed(
+                    title="Twoje hajsy to: " + get_printable_user_cash(payload.user_id) + " zł",
+                    description="TODO")
+                await message.edit(embed=embed_msg)
+                await message.add_reaction("♻")
+            else:
+                await message.edit(content=str(payload.emoji))
+
                 # TODO: set emoji to execute reroll
+
         except discord.HTTPException:
             pass
 
@@ -28,27 +47,30 @@ class MyClient(discord.Client):
             await message.channel.send('Guess a number between 1 and 10.')
 
         if message.content.startswith('$test'):
-            gameboard = jelonki.generate_field()
+            game_board = jelonki.generate_field()
 
-            gameboard = jelonki.randomize_field(gameboard)
-            jelonki.print_field(gameboard)
-            embedMsg = discord.embeds.Embed(title="nie wiem jakaś gra", description=jelonki.print_discord_field(gameboard))
+            game_board = jelonki.randomize_field(game_board)
+            jelonki.print_field(game_board)
+            embed_msg = discord.embeds.Embed(title="nie wiem jakaś gra",
+                                             description=jelonki.print_discord_field(game_board))
 
-            await message.channel.send(embed=embedMsg)
-            rezultat = linie.check(1, gameboard, w)
+            await message.channel.send(embed=embed_msg)
+            rezultat = linie.check(1, game_board, w)
             print('ELUWINA')
             while rezultat[2]:
                 print(rezultat[2])
-                gameboard = jelonki.regenerate_fields(gameboard, w)
-                linie.check(1, gameboard, w)
-                embedMsg = discord.embeds.Embed(title="nie wiem jakaś gra",
-                                                description=jelonki.print_discord_field(gameboard))
+                game_board = jelonki.regenerate_fields(game_board, w)
+                linie.check(1, game_board, w)
+                embed_msg = discord.embeds.Embed(title="nie wiem jakaś gra",
+                                                 description=jelonki.print_discord_field(game_board))
 
-                await message.channel.send(embed=embedMsg)
+                await message.channel.send(embed=embed_msg)
             await message.add_reaction("♻")
+
 
 client = MyClient()
 
+token = ''
 try:
     token = open("token.txt", "r").read()
 except IOError:
