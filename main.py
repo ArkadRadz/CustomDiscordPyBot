@@ -2,16 +2,23 @@ import discord
 import jelonki
 import linie
 import users
-
+import re
 
 def get_printable_user_cash(user_id):
     user_cash = int(users.read_user_data(user_id)) / 100
 
     return str(user_cash)
 
+def RepresentsInt(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 class MyClient(discord.Client):
     last_hajs_message_id = 0
+    clearable_channel_id = 0
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -58,6 +65,25 @@ class MyClient(discord.Client):
                 return m.author == client.user
 
             await message.channel.purge(limit=100, check=is_me)
+
+        if message.content.startswith('$doladuj'):
+            user_id = re.search("<@!\d+>", message.content)
+
+            if None == user_id:
+                user_id = re.search("<@\d+>", message.content)
+
+            hajs = re.search("\d+gr", message.content)
+            if None == user_id or None == hajs:
+                await message.channel.send('HALO POLICJA OSZUKUJO, NIE PODAJO UŻYTKOWNIKA [@uzytkownik] ANI/LUB HAJSU [liczba naturalna z końcówką gr np. 100gr]')
+                return
+
+            user_id_number = re.search("\d+", user_id.group()).group()
+            hajs_int = int(re.search("\d+", hajs.group()).group())
+            current_hajs = int(users.read_user_data(user_id_number))
+            new_hajs = current_hajs + hajs_int
+            users.write_user_data(user_id_number, new_hajs)
+
+            await message.channel.send("<@!{}> dostałeś {} groszy!".format(user_id_number, str(hajs_int)))
 
         if message.content.startswith('$hajs'):
             if self.last_hajs_message_id != 0:
