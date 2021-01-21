@@ -11,6 +11,8 @@ def get_printable_user_cash(user_id):
 
 
 class MyClient(discord.Client):
+    last_hajs_message_id = 0
+
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
 
@@ -22,17 +24,19 @@ class MyClient(discord.Client):
             channel = client.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
 
-            # TODO: check why bot ignores this comparison, as in it returns false
-            if str(payload.emoji) == "♻️":
+            if payload.emoji.name == '♻':
                 await message.clear_reactions()
 
                 embed_msg = discord.embeds.Embed(
                     title="Twoje hajsy to: " + get_printable_user_cash(payload.user_id) + " zł",
-                    description="TODO")
+                    description="TODO"
+                )
+
+                embed_msg.set_author(name=payload.member.name)
+                embed_msg.set_thumbnail(url=payload.member.avatar_url)
+
                 await message.edit(embed=embed_msg)
-                await message.add_reaction("♻")
-            else:
-                await message.edit(content=str(payload.emoji))
+                await message.add_reaction('♻')
 
                 # TODO: set emoji to execute reroll
 
@@ -45,6 +49,32 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$guess'):
             await message.channel.send('Guess a number between 1 and 10.')
+
+        if message.content.startswith('$wojteg'):
+            await message.channel.purge(limit=100)
+
+        if message.content.startswith('$sprzataj'):
+            def is_me(m):
+                return m.author == client.user
+
+            await message.channel.purge(limit=100, check=is_me)
+
+        if message.content.startswith('$hajs'):
+            if self.last_hajs_message_id != 0:
+                last_hajs_message = await message.channel.fetch_message(self.last_hajs_message_id)
+                await message.channel.delete_messages([last_hajs_message])
+
+            embed_msg = discord.embeds.Embed(
+                title="Twoje hajsy to: " + get_printable_user_cash(message.author.id) + " zł",
+                description="TODO"
+            )
+
+            embed_msg.set_author(name=message.author.name)
+            embed_msg.set_thumbnail(url=message.author.avatar_url)
+
+            new_message = await message.channel.send(embed=embed_msg)
+            self.last_hajs_message_id = new_message.id
+            await new_message.add_reaction('♻')
 
         if message.content.startswith('$test'):
             game_board = jelonki.generate_field()
