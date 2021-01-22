@@ -293,7 +293,7 @@ async def spin(message=None, bet=None, payload=None):
     await modify_cash(user_id, value=total)
 
     if total != 0:
-        win_money_text = "You've own: " + str(round(total*100, 2)) + " zł!"
+        win_money_text = "You've won: " + str(round(total, 2)) + " zł!"
     else:
         win_money_text = ""
 
