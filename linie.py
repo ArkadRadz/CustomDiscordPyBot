@@ -6,7 +6,6 @@ def check(b, t, w, respin_board):
     d3 = {"r": 0.2, "g": 0.2, "b": 0.2, "r2": 1, "g2": 0.5, "b2": 0.5, "j": 2}
     d4 = {"r": 0.5, "g": 0.5, "b": 0.5, "r2": 2, "g2": 1, "b2": 1, "j": 6}
     d5 = {"r": 2, "g": 1.5, "b": 1, "r2": 10, "g2": 5, "b2": 4, "j": 40}
-    respin_board = [[True for i in range(5)] for i in range(3)]
 
     total = 0
     sum = 0
@@ -204,27 +203,30 @@ def check(b, t, w, respin_board):
 
 async def spin(message):
     def create_game_board_message():
-        return discord.embeds.Embed(title="nie wiem jakaś gra",
-                                    description=jelonki.print_discord_field(game_board))
+        return jelonki.print_discord_field(game_board)
 
     w = [[True for i in range(9)] for i in range(3)]
     respin_board = [[True for i in range(5)] for i in range(3)]
 
     game_board = jelonki.generate_field()
-
     game_board = jelonki.randomize_field(game_board)
-    # jelonki.print_field(game_board)
     embed_msg = create_game_board_message()
 
-    await message.channel.send(embed=embed_msg)
+    await message.channel.send(embed_msg)
     rezultat = check(1, game_board, w, respin_board)
     while rezultat[3]:
         await asyncio.sleep(5)
+        await message.channel.send(":flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: ")
         respin_board = rezultat[2]
         w = rezultat[1]
         game_board = jelonki.regenerate_fields(game_board, rezultat[2])
         rezultat = check(1, game_board, w, respin_board)
         embed_msg = create_game_board_message()
-        await message.channel.send(embed=embed_msg)
+        await message.channel.send(embed_msg)
+    new_message = jelonki.create_cash_embed(
+        user_name=message.author.name, user_avatar_url=message.author.avatar_url, user_id=message.author.id
+    )
+    new_message.set_author(name=message.author.name)
 
-    await message.channel.send(":poop:")
+    final_embed_msg = await message.channel.send(embed=new_message)
+    await final_embed_msg.add_reaction('♻')

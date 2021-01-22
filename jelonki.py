@@ -73,14 +73,21 @@ def get_printable_user_cash(target_user_id):
 
     return str(user_cash)
 
-def create_cash_embed(message):
-    embed_msg = discord.embeds.Embed(
-        title="Twoje hajsy to: " + get_printable_user_cash(message.author.id) + " zł",
-        description="TODO",
-    )
-
-    embed_msg.set_author(name=message.author.name)
-    embed_msg.set_thumbnail(url=message.author.avatar_url)
+def create_cash_embed(payload = None, user_id = None, user_name = None, user_avatar_url = None):
+    if user_name is not None and user_avatar_url is not None and user_id is not None:
+        embed_msg = discord.embeds.Embed(
+            title="Twoje hajsy to: " + get_printable_user_cash(user_id) + " zł",
+            description="TODO",
+        )
+        embed_msg.set_author(name=user_name)
+        embed_msg.set_thumbnail(url=user_avatar_url)
+    else:
+        embed_msg = discord.embeds.Embed(
+            title="Twoje hajsy to: " + get_printable_user_cash(payload.user_id) + " zł",
+            description="TODO",
+        )
+        embed_msg.set_author(name=payload.member.name)
+        embed_msg.set_thumbnail(url=payload.member.avatar_url)
 
     return embed_msg
 
@@ -110,13 +117,23 @@ async def print_user_cash(client, message):
         last_hajs_message = await message.channel.fetch_message(client.last_hajs_message_id)
         await message.channel.delete_messages([last_hajs_message])
 
-    new_message = await message.channel.send(embed=create_cash_embed(message))
+    new_message = await message.channel.send(embed=create_cash_embed(
+        user_name=message.author.name, user_avatar_url=message.author.avatar_url, user_id=message.author.id
+    ))
     client.last_hajs_message_id = new_message.id
     await new_message.add_reaction('♻')
 
 
-async def update_user_cash_message(message):
+async def update_user_cash_message(
+        payload=None, user_id=None, user_name=None, user_avatar_url=None, message=None):
     await message.clear_reactions()
+    edited_embed = None
+    if payload is not None:
+        edited_embed = create_cash_embed(payload=payload)
 
-    await message.edit(embed=create_cash_embed(message))
-    await message.add_reaction('♻')
+    if user_name is not None and user_avatar_url is not None and user_id is not None:
+        edited_embed = create_cash_embed(user_name=user_name, user_avatar_url=user_avatar_url, user_id=user_id)
+
+    if edited_embed is not None:
+        await message.edit(embed=edited_embed)
+        await message.add_reaction('♻')

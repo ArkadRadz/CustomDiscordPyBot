@@ -34,7 +34,8 @@ class MyClient(discord.Client):
             message = await channel.fetch_message(payload.message_id)
 
             if payload.emoji.name == '♻':
-                await jelonki.update_user_cash_message(message=message)
+                await message.clear_reactions()
+                await jelonki.update_user_cash_message(payload=payload, message=message)
 
         except discord.HTTPException:
             pass
@@ -49,12 +50,7 @@ class MyClient(discord.Client):
             self.clearable_channel_id = 0
 
         if message.content.startswith('$sprzataj'):
-            def is_me(m):
-                if m.id == self.last_hajs_message_id:
-                    self.last_hajs_message_id = 0
-                return m.author == client.user
-
-            await message.channel.purge(limit=100, check=is_me)
+            await self.clear_msg(message)
 
         if message.content.startswith('$doladuj'):
             await jelonki.add_cash(message)
@@ -63,7 +59,16 @@ class MyClient(discord.Client):
             await jelonki.print_user_cash(client=self, message=message)
 
         if message.content.startswith('$test'):
+            await self.clear_msg(message)
             await linie.spin(message)
+
+    async def clear_msg(self, message):
+        def is_me(m):
+            if m.id == self.last_hajs_message_id:
+                self.last_hajs_message_id = 0
+            return m.author == client.user
+
+        await message.channel.purge(limit=100, check=is_me)
 
     # async def godzina_task(self):
     #     await self.wait_until_ready()
