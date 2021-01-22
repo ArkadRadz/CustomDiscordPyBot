@@ -5,24 +5,25 @@ import discord
 
 symbols = ["r", "g", "b", "r2", "g2", "b2", "j"]
 
-thisdict =	{
-  "brand": "Ford",
-  "model": "Mustang",
-  "year": 1964
+thisdict = {
+    "brand": "Ford",
+    "model": "Mustang",
+    "year": 1964
 }
 
 emoji_symbols = {
-    "r" : ":red_circle:",
-    "g" : ":green_circle:",
-    "b" : ":blue_circle:",
-    "r2": ":japanese_goblin:",
-    "g2": ":leafy_green:",
-    "b2": ":blueberries:",
-    "d3": ":lemon:",
-    "d4": ":lemon:",
-    "d5": ":lemon:",
-    "j" : ":deer:"
+    "r": "<:czerwone:802266951434764299>",
+    "g": "<:zielone:802266951212466277>",
+    "b": "<:niebieskie:802266950297190460>",
+    "r2": "<:misie:802266952093532160>",
+    "g2": "<:wilczki:802266951774633995>",
+    "b2": "<:sowki:802266952130756638>",
+    "d3": "<:bonus:802266951614332991>",
+    "d4": "<:bonus:802266951614332991>",
+    "d5": "<:bonus:802266951614332991>",
+    "j": "<:jelonki:802266952307310682>"
 }
+
 
 def print_field(field):
     for x in range(len(field)):
@@ -39,7 +40,7 @@ def print_discord_field(field):
     final_text = ""
     for x in range(len(field)):
         for y in range(len(field[x])):
-            final_text += " " + emoji_symbols[field[x][y]] + " "
+            final_text += " " + str(emoji_symbols[field[x][y]]) + " "
         final_text += "\n"
 
     return final_text
@@ -73,23 +74,32 @@ def get_printable_user_cash(target_user_id):
 
     return str(user_cash)
 
-def create_cash_embed(payload = None, user_id = None, user_name = None, user_avatar_url = None):
+
+def create_cash_embed(payload=None, user_id=None, user_name=None, user_avatar_url=None):
+    react1 = "React with ♻ to check your account balance"
+    react2 = "React with 🥉 to spin for 0.50 zł"
+    react3 = "React with 🥈 to spin for 1zł"
+    react4 = "React with 🥇 to spin for 5zł"
+    react5 = "Turn music on with 🔊 or off with 🔇"
+    react_msg = react1 + "\n" + react2 + "\n" + react3 + "\n" + react4 + "\n" + react5
+
     if user_name is not None and user_avatar_url is not None and user_id is not None:
         embed_msg = discord.embeds.Embed(
             title="Twoje hajsy to: " + get_printable_user_cash(user_id) + " zł",
-            description="TODO",
+            description=react_msg,
         )
         embed_msg.set_author(name=user_name)
         embed_msg.set_thumbnail(url=user_avatar_url)
     else:
         embed_msg = discord.embeds.Embed(
             title="Twoje hajsy to: " + get_printable_user_cash(payload.user_id) + " zł",
-            description="TODO",
+            description=react_msg,
         )
         embed_msg.set_author(name=payload.member.name)
         embed_msg.set_thumbnail(url=payload.member.avatar_url)
 
     return embed_msg
+
 
 async def add_cash(message):
     user_id = re.search("<@!\d+>", message.content)
@@ -137,3 +147,8 @@ async def update_user_cash_message(
     if edited_embed is not None:
         await message.edit(embed=edited_embed)
         await message.add_reaction('♻')
+        await message.add_reaction('🥉')
+        await message.add_reaction('🥈')
+        await message.add_reaction('🥇')
+        await message.add_reaction('🔊')
+        await message.add_reaction('🔇')

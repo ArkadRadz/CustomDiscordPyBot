@@ -1,6 +1,8 @@
 import jelonki
-import discord
 import asyncio
+import users
+import re
+
 
 def check(b, t, w, respin_board):
     d3 = {"r": 0.2, "g": 0.2, "b": 0.2, "r2": 1, "g2": 0.5, "b2": 0.5, "j": 2}
@@ -201,7 +203,63 @@ def check(b, t, w, respin_board):
     return [total, w, respin_board, spin]
 
 
-async def spin(message):
+def isfloat(x):
+    try:
+        a = float(x)
+    except (TypeError, ValueError):
+        return False
+    else:
+        return True
+
+
+def isint(x):
+    try:
+        a = float(x)
+        b = int(a)
+    except (TypeError, ValueError):
+        return False
+    else:
+        return a == b
+
+
+async def modify_cash(target_id, value=None):
+    user_cash = users.read_user_data(target_id)
+    if value is None:
+        final_cash = int(user_cash) - 50
+    else:
+        if isint(x=value):
+            final_cash = int(user_cash) + int(value)
+        else:
+            cash = float(value) * 100
+            final_cash = int(user_cash) + int(cash)
+
+    if final_cash > 0:
+        users.write_user_data(str(target_id), str(final_cash))
+        return True
+    else:
+        return False
+
+
+async def spin(message=None, bet=None, payload=None):
+    if message is not None:
+        user_name = message.author.name
+        user_avatar_url = message.author.avatar_url
+        user_id = message.author.id
+    if payload is not None:
+        user_name = payload.member.name
+        user_avatar_url = payload.member.avatar_url
+        user_id = payload.member.id
+
+    if bet is not None:
+        bet = re.search("\d+", bet).group()
+        can_play = await modify_cash(user_id, -abs(int(bet)))
+    else:
+        can_play = await modify_cash(user_id, bet)
+
+    if not can_play:
+        await send_embed_msg(message, user_avatar_url, user_id, user_name, custom_text="Not enough cash!")
+        return
+
     def create_game_board_message():
         return jelonki.print_discord_field(game_board)
 
@@ -214,19 +272,44 @@ async def spin(message):
 
     await message.channel.send(embed_msg)
     rezultat = check(1, game_board, w, respin_board)
+    last_spin = rezultat[0]
+    total = rezultat[0]
     while rezultat[3]:
+        await message.channel.send("rezultat[0] == " + str(rezultat[0]))
+
         await asyncio.sleep(5)
         await message.channel.send(":flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: ")
         respin_board = rezultat[2]
         w = rezultat[1]
         game_board = jelonki.regenerate_fields(game_board, rezultat[2])
+        last_spin = rezultat[0]
         rezultat = check(1, game_board, w, respin_board)
+        total += rezultat[0]
         embed_msg = create_game_board_message()
         await message.channel.send(embed_msg)
-    new_message = jelonki.create_cash_embed(
-        user_name=message.author.name, user_avatar_url=message.author.avatar_url, user_id=message.author.id
-    )
-    new_message.set_author(name=message.author.name)
 
+    total += last_spin
+
+    await modify_cash(user_id, value=total)
+
+    if total != 0:
+        win_money_text = "You've own: " + str(round(total*100, 2)) + " zł!"
+    else:
+        win_money_text = ""
+
+    await send_embed_msg(message, user_avatar_url, user_id, user_name, custom_text=win_money_text)
+
+
+async def send_embed_msg(message, user_avatar_url, user_id, user_name, custom_text=""):
+    new_message = jelonki.create_cash_embed(
+        user_name=user_name, user_avatar_url=user_avatar_url, user_id=user_id
+    )
+    new_message.set_author(name=user_name)
+    new_message.set_footer(text=custom_text)
     final_embed_msg = await message.channel.send(embed=new_message)
     await final_embed_msg.add_reaction('♻')
+    await final_embed_msg.add_reaction('🥉')
+    await final_embed_msg.add_reaction('🥈')
+    await final_embed_msg.add_reaction('🥇')
+    await final_embed_msg.add_reaction('🔊')
+    await final_embed_msg.add_reaction('🔇')
