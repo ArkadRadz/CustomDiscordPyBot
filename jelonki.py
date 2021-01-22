@@ -1,4 +1,7 @@
 import random
+import users
+import re
+import discord
 
 symbols = ["r", "g", "b", "r2", "g2", "b2", "j"]
 
@@ -45,3 +48,57 @@ def regenerate_fields(field, w):
                 field[x][y] = generate()
 
     return field
+
+
+def get_printable_user_cash(target_user_id):
+    user_cash = int(users.read_user_data(target_user_id)) / 100
+
+    return str(user_cash)
+
+def create_cash_embed(message):
+    embed_msg = discord.embeds.Embed(
+        title="Twoje hajsy to: " + get_printable_user_cash(message.author.id) + " zł",
+        description="TODO",
+    )
+
+    embed_msg.set_author(name=message.author.name)
+    embed_msg.set_thumbnail(url=message.author.avatar_url)
+
+    return embed_msg
+
+async def add_cash(message):
+    user_id = re.search("<@!\d+>", message.content)
+
+    if None == user_id:
+        user_id = re.search("<@\d+>", message.content)
+
+    hajs = re.search("\d+gr", message.content)
+    if None == user_id or None == hajs:
+        await message.channel.send(
+            'HALO POLICJA OSZUKUJO, NIE PODAJO UŻYTKOWNIKA [@uzytkownik] ANI/LUB HAJSU [liczba naturalna z końcówką gr np. 100gr]')
+        return
+
+    user_id_number = re.search("\d+", user_id.group()).group()
+    hajs_int = int(re.search("\d+", hajs.group()).group())
+    current_hajs = int(users.read_user_data(user_id_number))
+    new_hajs = current_hajs + hajs_int
+    users.write_user_data(user_id_number, new_hajs)
+
+    await message.channel.send("<@!{}> dostałeś {} groszy!".format(user_id_number, str(hajs_int)))
+
+
+async def print_user_cash(client, message):
+    if client.last_hajs_message_id != 0:
+        last_hajs_message = await message.channel.fetch_message(client.last_hajs_message_id)
+        await message.channel.delete_messages([last_hajs_message])
+
+    new_message = await message.channel.send(embed=create_cash_embed(message))
+    client.last_hajs_message_id = new_message.id
+    await new_message.add_reaction('♻')
+
+
+async def update_user_cash_message(message):
+    await message.clear_reactions()
+
+    await message.edit(embed=create_cash_embed(message))
+    await message.add_reaction('♻')

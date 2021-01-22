@@ -1,16 +1,7 @@
 import discord
 import jelonki
 import linie
-import users
-import re
-import asyncio
 from datetime import datetime
-
-
-def get_printable_user_cash(user_id):
-    user_cash = int(users.read_user_data(user_id)) / 100
-
-    return str(user_cash)
 
 
 def RepresentsInt(s):
@@ -41,20 +32,7 @@ class MyClient(discord.Client):
             message = await channel.fetch_message(payload.message_id)
 
             if payload.emoji.name == '♻':
-                await message.clear_reactions()
-
-                embed_msg = discord.embeds.Embed(
-                    title="Twoje hajsy to: " + get_printable_user_cash(payload.user_id) + " zł",
-                    description="TODO"
-                )
-
-                embed_msg.set_author(name=payload.member.name)
-                embed_msg.set_thumbnail(url=payload.member.avatar_url)
-
-                await message.edit(embed=embed_msg)
-                await message.add_reaction('♻')
-
-                # TODO: set emoji to execute reroll
+                await jelonki.update_user_cash_message(message=message)
 
         except discord.HTTPException:
             pass
@@ -63,54 +41,24 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('$guess'):
-            await message.channel.send('Guess a number between 1 and 10.')
-
         if message.content.startswith('$wojteg'):
             await message.channel.purge(limit=100)
+            self.last_hajs_message_id = 0
+            self.clearable_channel_id = 0
 
         if message.content.startswith('$sprzataj'):
             def is_me(m):
+                if m.id == self.last_hajs_message_id:
+                    self.last_hajs_message_id = 0
                 return m.author == client.user
 
             await message.channel.purge(limit=100, check=is_me)
 
         if message.content.startswith('$doladuj'):
-            user_id = re.search("<@!\d+>", message.content)
-
-            if None == user_id:
-                user_id = re.search("<@\d+>", message.content)
-
-            hajs = re.search("\d+gr", message.content)
-            if None == user_id or None == hajs:
-                await message.channel.send(
-                    'HALO POLICJA OSZUKUJO, NIE PODAJO UŻYTKOWNIKA [@uzytkownik] ANI/LUB HAJSU [liczba naturalna z końcówką gr np. 100gr]')
-                return
-
-            user_id_number = re.search("\d+", user_id.group()).group()
-            hajs_int = int(re.search("\d+", hajs.group()).group())
-            current_hajs = int(users.read_user_data(user_id_number))
-            new_hajs = current_hajs + hajs_int
-            users.write_user_data(user_id_number, new_hajs)
-
-            await message.channel.send("<@!{}> dostałeś {} groszy!".format(user_id_number, str(hajs_int)))
+            await jelonki.add_cash(message)
 
         if message.content.startswith('$hajs'):
-            if self.last_hajs_message_id != 0:
-                last_hajs_message = await message.channel.fetch_message(self.last_hajs_message_id)
-                await message.channel.delete_messages([last_hajs_message])
-
-            embed_msg = discord.embeds.Embed(
-                title="Twoje hajsy to: " + get_printable_user_cash(message.author.id) + " zł",
-                description="TODO"
-            )
-
-            embed_msg.set_author(name=message.author.name)
-            embed_msg.set_thumbnail(url=message.author.avatar_url)
-
-            new_message = await message.channel.send(embed=embed_msg)
-            self.last_hajs_message_id = new_message.id
-            await new_message.add_reaction('♻')
+            await jelonki.print_user_cash(client=self, message=message)
 
         if message.content.startswith('$test'):
             game_board = jelonki.generate_field()
