@@ -1,3 +1,4 @@
+import discord
 import jelonki
 import asyncio
 import users
@@ -278,7 +279,7 @@ async def spin(message=None, bet=None, payload=None):
         await message.channel.send("rezultat[0] == " + str(rezultat[0]))
 
         await asyncio.sleep(5)
-        await message.channel.send(":flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: :flag_va: ")
+        await message.channel.send(embed=discord.embeds.Embed(description="++++++++++++++++++++++++++++++++++"))
         respin_board = rezultat[2]
         w = rezultat[1]
         game_board = jelonki.regenerate_fields(game_board, rezultat[2])

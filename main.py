@@ -78,11 +78,6 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('$wojteg'):
-            await message.channel.purge(limit=100)
-            self.last_hajs_message_id = 0
-            self.clearable_channel_id = 0
-
         if message.content.startswith('$start'):
             react1 = "React with ♻ to check your account balance"
             react2 = "React with 🥉 to spin for 0.50 zł"
@@ -115,6 +110,10 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$hajs'):
             await jelonki.print_user_cash(client=self, message=message)
+
+        if message.content.startswith('$nickname'):
+            if message.author.id == message.guild.owner_id:
+                await self.user.edit(username=message.content[10:]) #10 due to length of $nickname with space
 
         if message.content.startswith('$test'):
             await self.clear_msg(message)
