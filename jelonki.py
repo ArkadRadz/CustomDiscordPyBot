@@ -5,6 +5,24 @@ import discord
 
 symbols = ["r", "g", "b", "r2", "g2", "b2", "j"]
 
+thisdict =	{
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+
+emoji_symbols = {
+    "r" : ":red_circle:",
+    "g" : ":green_circle:",
+    "b" : ":blue_circle:",
+    "r2": ":japanese_goblin:",
+    "g2": ":leafy_green:",
+    "b2": ":blueberries:",
+    "d3": ":lemon:",
+    "d4": ":lemon:",
+    "d5": ":lemon:",
+    "j" : ":deer:"
+}
 
 def print_field(field):
     for x in range(len(field)):
@@ -21,7 +39,7 @@ def print_discord_field(field):
     final_text = ""
     for x in range(len(field)):
         for y in range(len(field[x])):
-            final_text += " " + field[x][y] + " "
+            final_text += " " + emoji_symbols[field[x][y]] + " "
         final_text += "\n"
 
     return final_text

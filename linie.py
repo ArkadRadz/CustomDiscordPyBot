@@ -1,4 +1,8 @@
-def check(b, t, w):
+import jelonki
+import discord
+import asyncio
+
+def check(b, t, w, respin_board):
     d3 = {"r": 0.2, "g": 0.2, "b": 0.2, "r2": 1, "g2": 0.5, "b2": 0.5, "j": 2}
     d4 = {"r": 0.5, "g": 0.5, "b": 0.5, "r2": 2, "g2": 1, "b2": 1, "j": 6}
     d5 = {"r": 2, "g": 1.5, "b": 1, "r2": 10, "g2": 5, "b2": 4, "j": 40}
@@ -196,3 +200,31 @@ def check(b, t, w):
         total += last_sum
 
     return [total, w, respin_board, spin]
+
+
+async def spin(message):
+    def create_game_board_message():
+        return discord.embeds.Embed(title="nie wiem jakaś gra",
+                                    description=jelonki.print_discord_field(game_board))
+
+    w = [[True for i in range(9)] for i in range(3)]
+    respin_board = [[True for i in range(5)] for i in range(3)]
+
+    game_board = jelonki.generate_field()
+
+    game_board = jelonki.randomize_field(game_board)
+    # jelonki.print_field(game_board)
+    embed_msg = create_game_board_message()
+
+    await message.channel.send(embed=embed_msg)
+    rezultat = check(1, game_board, w, respin_board)
+    while rezultat[3]:
+        await asyncio.sleep(5)
+        respin_board = rezultat[2]
+        w = rezultat[1]
+        game_board = jelonki.regenerate_fields(game_board, rezultat[2])
+        rezultat = check(1, game_board, w, respin_board)
+        embed_msg = create_game_board_message()
+        await message.channel.send(embed=embed_msg)
+
+    await message.channel.send(":poop:")
