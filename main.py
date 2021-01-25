@@ -99,6 +99,12 @@ class MyClient(discord.Client):
         if message.content.startswith('$sprzataj'):
             await self.clear_msg(message)
 
+        if message.content.startswith('$avatar'):
+            with open('avatar.jpg', 'rb') as f:
+                image = f.read()
+
+            await self.user.edit(avatar=image)
+
         if message.content.startswith('$czy'):
             user_id = '<@{}>'.format(str(message.author.id))
             if message.author.voice is not None:
