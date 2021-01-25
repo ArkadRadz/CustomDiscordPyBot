@@ -2,28 +2,25 @@ import random
 import users
 import re
 import discord
+import messages
+import setup
 
 symbols = ["r", "g", "b", "r2", "g2", "b2", "j"]
 
-thisdict = {
-    "brand": "Ford",
-    "model": "Mustang",
-    "year": 1964
-}
+# emoji_symbols = {
+#     "r": "<:czerwone:802266951434764299>",
+#     "g": "<:zielone:802266951212466277>",
+#     "b": "<:niebieskie:802266950297190460>",
+#     "r2": "<:misie:802266952093532160>",
+#     "g2": "<:wilczki:802266951774633995>",
+#     "b2": "<:sowki:802266952130756638>",
+#     "d3": "<:bonus:802266951614332991>",
+#     "d4": "<:bonus:802266951614332991>",
+#     "d5": "<:bonus:802266951614332991>",
+#     "j": "<:jelonki:802266952307310682>"
+# }
 
-emoji_symbols = {
-    "r": "<:czerwone:802266951434764299>",
-    "g": "<:zielone:802266951212466277>",
-    "b": "<:niebieskie:802266950297190460>",
-    "r2": "<:misie:802266952093532160>",
-    "g2": "<:wilczki:802266951774633995>",
-    "b2": "<:sowki:802266952130756638>",
-    "d3": "<:bonus:802266951614332991>",
-    "d4": "<:bonus:802266951614332991>",
-    "d5": "<:bonus:802266951614332991>",
-    "j": "<:jelonki:802266952307310682>"
-}
-
+emoji_symbols = setup.emoji_symbols
 
 def print_field(field):
     for x in range(len(field)):
@@ -146,9 +143,4 @@ async def update_user_cash_message(
 
     if edited_embed is not None:
         await message.edit(embed=edited_embed)
-        await message.add_reaction('♻')
-        await message.add_reaction('🥉')
-        await message.add_reaction('🥈')
-        await message.add_reaction('🥇')
-        await message.add_reaction('🔊')
-        await message.add_reaction('🔇')
+        await messages.add_reactions(message)

@@ -3,8 +3,11 @@ import jelonki
 import linie
 import asyncio
 import re
+import messages
+import setup
 from datetime import datetime
 from discord.ext import commands
+
 
 def RepresentsInt(s):
     try:
@@ -22,6 +25,9 @@ class MyClient(discord.Client):
     last_hajs_message_id = 0
     last_game_board_message_id = 0
     clearable_channel_id = 0
+    command_emojis = ['♻️', '🥉', '🥈', '🥇', '🔊', '🔇']
+    is_configured = False
+    configure_message_id = 0
     self_vp = None
 
     async def on_ready(self):
@@ -35,41 +41,45 @@ class MyClient(discord.Client):
             channel = client.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
 
-            if payload.emoji.name == '♻':
-                await message.clear_reactions()
-                await jelonki.update_user_cash_message(payload=payload, message=message)
-            if payload.emoji.name == '🥉':
-                await self.clear_msg(message)
-                await linie.spin(message=message, bet="50", payload=payload)
-            if payload.emoji.name == '🥈':
-                await self.clear_msg(message)
-                await linie.spin(message=message, bet="100", payload=payload)
-            if payload.emoji.name == '🥇':
-                await self.clear_msg(message)
-                await linie.spin(message=message, bet="500", payload=payload)
-            if payload.emoji.name == '🔊':
-                if payload.member.voice.channel is not None:
-                    channel = payload.member.voice.channel
-                    self.self_vp = await channel.connect()
-                    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("muzyka.mp3"), volume=0.15)
-                    self.self_vp.play(source)
+            if self.is_configured is False and self.configure_message_id != 0 and payload.user_id == message.guild.owner_id:
+                setup_msg = await message.channel.fetch_message(self.configure_message_id)
+                if str(payload.emoji) not in self.command_emojis and not setup.is_setup_finished():
+                    setup.set_emoji_symbol(setup.return_first_none_emoji(), str(payload.emoji))
+                    emoji_to_set = setup.return_first_none_emoji()
+                    if emoji_to_set is not None:
+                        text_content = "React to this message with any emoji aside from " + " ".join(
+                            self.command_emojis)
+                        text_content = text_content + "to set as visible value: `" + emoji_to_set + "`"
+                        await setup_msg.edit(content=text_content)
+                        await setup_msg.clear_reactions()
+
+                    setup.create_configuration(message.guild.id)
+                    self.is_configured = setup.is_setup_finished()
+            if self.is_configured is not False:
+                if payload.emoji.name == '♻':
                     await message.clear_reactions()
-                    await message.add_reaction('♻')
-                    await message.add_reaction('🥉')
-                    await message.add_reaction('🥈')
-                    await message.add_reaction('🥇')
-                    await message.add_reaction('🔊')
-                    await message.add_reaction('🔇')
-            if payload.emoji.name == '🔇':
-                if payload.member.voice.channel is not None or self.self_vp is not None:
-                    await self.self_vp.disconnect()
-                    await message.clear_reactions()
-                    await message.add_reaction('♻')
-                    await message.add_reaction('🥉')
-                    await message.add_reaction('🥈')
-                    await message.add_reaction('🥇')
-                    await message.add_reaction('🔊')
-                    await message.add_reaction('🔇')
+                    await jelonki.update_user_cash_message(payload=payload, message=message)
+                if payload.emoji.name == '🥉':
+                    await self.clear_msg(message)
+                    await linie.spin(message=message, bet="50", payload=payload)
+                if payload.emoji.name == '🥈':
+                    await self.clear_msg(message)
+                    await linie.spin(message=message, bet="100", payload=payload)
+                if payload.emoji.name == '🥇':
+                    await self.clear_msg(message)
+                    await linie.spin(message=message, bet="500", payload=payload)
+                if payload.emoji.name == '🔊':
+                    if payload.member.voice.channel is not None:
+                        channel = payload.member.voice.channel
+                        self.self_vp = await channel.connect()
+                        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("muzyka.mp3"), volume=0.15)
+                        self.self_vp.play(source)
+                        await messages.add_reactions(message)
+                if payload.emoji.name == '🔇':
+                    if payload.member.voice.channel is not None or self.self_vp is not None:
+                        await self.self_vp.disconnect()
+                        await messages.add_reactions(message)
+
 
         except discord.HTTPException:
             pass
@@ -79,31 +89,27 @@ class MyClient(discord.Client):
             return
 
         if message.content.startswith('$start'):
-            react1 = "React with ♻ to check your account balance"
-            react2 = "React with 🥉 to spin for 0.50 zł"
-            react3 = "React with 🥈 to spin for 1zł"
-            react4 = "React with 🥇 to spin for 5zł"
-            react5 = "Turn music on with 🔊 or off with 🔇"
-            react_msg = react1 + "\n" + react2 + "\n" + react3 + "\n" + react4 + "\n" + react5
+            await messages.print_bot_message(self, message)
 
-            embed_msg = discord.embeds.Embed(
-                title="JELONKI",
-                description=react_msg,
-            )
-            embed_msg.set_author(name=message.author.name)
-            embed_msg.set_thumbnail(
-                url="https://cdnroute.bpsgameserver.com/contenthub-cdn-origin/media/casinoeuro/casinoeuro_blog/27167_Monthly_Hightlights_Northern_sky.jpg")
-
-            embed = await message.channel.send(embed=embed_msg)
-            await embed.add_reaction('♻')
-            await embed.add_reaction('🥉')
-            await embed.add_reaction('🥈')
-            await embed.add_reaction('🥇')
-            await embed.add_reaction('🔊')
-            await embed.add_reaction('🔇')
+        if message.content.startswith('$juz'):
+            await message.channel.send("Czy mam ustawione emotki? " + str(setup.is_setup_finished()))
+            await message.channel.send("Czy jestem skonfigurowany? " + str(self.is_configured))
+            await message.channel.send(" ".join(setup.return_emoji_symbols().values()))
 
         if message.content.startswith('$sprzataj'):
             await self.clear_msg(message)
+
+        if message.content.startswith('$czy'):
+            user_id = '<@{}>'.format(str(message.author.id))
+            if message.author.voice is not None:
+                channel = message.author.voice.channel
+                self.self_vp = await channel.connect()
+                source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("test.mp3"), volume=0.15)
+                self.self_vp.play(source)
+                await asyncio.sleep(10)
+                await self.self_vp.disconnect()
+            else:
+                await message.channel.send(user_id + " https://www.youtube.com/watch?v=2vbYlqgWZk8")
 
         if message.content.startswith('$doladuj'):
             await jelonki.add_cash(message)
@@ -111,9 +117,24 @@ class MyClient(discord.Client):
         if message.content.startswith('$hajs'):
             await jelonki.print_user_cash(client=self, message=message)
 
+        if message.content.startswith('$set'):
+            config = setup.read_configuration(message.guild.id)
+            if config is not None:
+                setup.emoji_symbols = config
+                self.is_configured = setup.is_setup_finished()
+                text_content = "Read existing configuration, set emoji to: " + " ".join(setup.emoji_symbols.values())
+                await message.channel.send(text_content)
+
+            if message.author.id == message.guild.owner_id and self.configure_message_id == 0 and self.is_configured is False:
+                emoji_to_set = setup.return_first_none_emoji()
+                text_content = "React to this message with any emoji aside from " + " ".join(self.command_emojis)
+                text_content = text_content + "to set as visible value: `" + emoji_to_set + "`"
+                setup_msg = await message.channel.send(text_content)
+                self.configure_message_id = setup_msg.id
+
         if message.content.startswith('$nickname'):
             if message.author.id == message.guild.owner_id:
-                await self.user.edit(username=message.content[10:]) #10 due to length of $nickname with space
+                await self.user.edit(username=message.content[10:])  # 10 due to length of $nickname with space
 
         if message.content.startswith('$test'):
             await self.clear_msg(message)

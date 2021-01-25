@@ -3,6 +3,7 @@ import jelonki
 import asyncio
 import users
 import re
+import messages
 
 
 def check(b, t, w, respin_board):
@@ -308,9 +309,4 @@ async def send_embed_msg(message, user_avatar_url, user_id, user_name, custom_te
     new_message.set_author(name=user_name)
     new_message.set_footer(text=custom_text)
     final_embed_msg = await message.channel.send(embed=new_message)
-    await final_embed_msg.add_reaction('♻')
-    await final_embed_msg.add_reaction('🥉')
-    await final_embed_msg.add_reaction('🥈')
-    await final_embed_msg.add_reaction('🥇')
-    await final_embed_msg.add_reaction('🔊')
-    await final_embed_msg.add_reaction('🔇')
+    await messages.add_reactions(final_embed_msg)
