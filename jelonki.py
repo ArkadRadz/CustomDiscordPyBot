@@ -4,23 +4,10 @@ import re
 import discord
 import messages
 import setup
+import datetime
 
 symbols = ["r", "g", "b", "r2", "g2", "b2", "j"]
 
-# emoji_symbols = {
-#     "r": "<:czerwone:802266951434764299>",
-#     "g": "<:zielone:802266951212466277>",
-#     "b": "<:niebieskie:802266950297190460>",
-#     "r2": "<:misie:802266952093532160>",
-#     "g2": "<:wilczki:802266951774633995>",
-#     "b2": "<:sowki:802266952130756638>",
-#     "d3": "<:bonus:802266951614332991>",
-#     "d4": "<:bonus:802266951614332991>",
-#     "d5": "<:bonus:802266951614332991>",
-#     "j": "<:jelonki:802266952307310682>"
-# }
-
-emoji_symbols = setup.emoji_symbols
 
 def print_field(field):
     for x in range(len(field)):
@@ -34,6 +21,8 @@ def generate():
 
 
 def print_discord_field(field):
+    emoji_symbols = setup.return_emoji_symbols()
+
     final_text = ""
     for x in range(len(field)):
         for y in range(len(field[x])):
@@ -67,7 +56,9 @@ def regenerate_fields(field, w):
 
 
 def get_printable_user_cash(target_user_id):
-    user_cash = int(users.read_user_data(target_user_id)) / 100
+    # user_cash = int(users.read_user_data(target_user_id)) / 100
+    user_data = users.read_user_data(target_user_id)
+    user_cash = int(user_data['cash']) / 100
 
     return str(user_cash)
 
@@ -112,11 +103,31 @@ async def add_cash(message):
 
     user_id_number = re.search("\d+", user_id.group()).group()
     hajs_int = int(re.search("\d+", hajs.group()).group())
-    current_hajs = int(users.read_user_data(user_id_number))
+    # current_hajs = int(users.read_user_data(user_id_number))
+    user_data = users.read_user_data(user_id_number)
+    current_hajs = int(user_data["cash"])
     new_hajs = current_hajs + hajs_int
-    users.write_user_data(user_id_number, new_hajs)
+    users.write_user_data(user_id_number, {"cash": new_hajs})
 
     await message.channel.send("<@!{}> dostałeś {} groszy!".format(user_id_number, str(hajs_int)))
+
+
+async def add_daily_cash(message):
+    user_id_number = str(message.author.id)
+    hajs_int = 100
+
+    user_data = users.read_user_data(user_id_number)
+    next_date = str(datetime.date.today() + datetime.timedelta(days=1))
+
+    if user_data["last_daily"] == str(datetime.date.today()):
+        await message.channel.send("<@!{}> oj nie nie byczku! Wróć {} po wincyj szekli.".format(user_id_number, next_date))
+        return
+
+    current_hajs = int(user_data["cash"])
+    new_hajs = current_hajs + hajs_int
+    users.write_user_data(user_id_number, {"cash": new_hajs, "last_daily": str(datetime.date.today())})
+
+    await message.channel.send("<@!{}> gotowe! Wróć {} po wincyj szekli.".format(user_id_number, next_date))
 
 
 async def print_user_cash(client, message):
@@ -128,7 +139,7 @@ async def print_user_cash(client, message):
         user_name=message.author.name, user_avatar_url=message.author.avatar_url, user_id=message.author.id
     ))
     client.last_hajs_message_id = new_message.id
-    await new_message.add_reaction('♻')
+    await messages.add_reactions(new_message)
 
 
 async def update_user_cash_message(

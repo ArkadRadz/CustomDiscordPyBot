@@ -225,7 +225,8 @@ def isint(x):
 
 
 async def modify_cash(target_id, value=None):
-    user_cash = users.read_user_data(target_id)
+    user_data = users.read_user_data(target_id)
+    user_cash = int(user_data["cash"])
     if value is None:
         final_cash = int(user_cash) - 50
     else:
@@ -236,7 +237,8 @@ async def modify_cash(target_id, value=None):
             final_cash = int(user_cash) + int(cash)
 
     if final_cash > 0:
-        users.write_user_data(str(target_id), str(final_cash))
+        print(final_cash)
+        users.write_user_data(str(target_id), {"cash": str(final_cash)})
         return True
     else:
         return False

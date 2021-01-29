@@ -6,7 +6,7 @@ async def print_bot_message(self, message):
     react2 = "React with 🥉 to spin for 0.50 zł"
     react3 = "React with 🥈 to spin for 1zł"
     react4 = "React with 🥇 to spin for 5zł"
-    react5 = "Turn music on with 🔊 or off with 🔇"
+    react5 = "Turn music on with 🔊 or off with 🔇 (you must be connected to a voice channel to use this)"
     react_msg = react1 + "\n" + react2 + "\n" + react3 + "\n" + react4 + "\n" + react5
     embed_msg = discord.embeds.Embed(
         title="JELONKI",
@@ -16,7 +16,7 @@ async def print_bot_message(self, message):
     embed_msg.set_thumbnail(
         url="https://cdnroute.bpsgameserver.com/contenthub-cdn-origin/media/casinoeuro/casinoeuro_blog/27167_Monthly_Hightlights_Northern_sky.jpg")
     embed = await message.channel.send(embed=embed_msg)
-    await add_reactions(message)
+    await add_reactions(embed)
 
 
 async def add_reactions(message):

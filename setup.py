@@ -48,7 +48,7 @@ def create_configuration(server_id):
     utils.check_if_dir_exists(setup_dir)
     server_string = setup_dir + "/" + str(server_id)
     f = open(server_string, "w")
-    f.write(json.dumps(emoji_symbols))
+    f.write(json.dumps(emoji_symbols, ensure_ascii=False))
     f.close()
 
 def read_configuration(server_id):
@@ -58,7 +58,6 @@ def read_configuration(server_id):
         f = open(server_string, "r")
         configuration = json.load(f)
         f.close()
-        print(configuration)
         return configuration
     except IOError:
         print("Configuration for server " + str(server_id) + " does not exist.")

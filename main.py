@@ -69,16 +69,26 @@ class MyClient(discord.Client):
                     await self.clear_msg(message)
                     await linie.spin(message=message, bet="500", payload=payload)
                 if payload.emoji.name == '🔊':
-                    if payload.member.voice.channel is not None:
-                        channel = payload.member.voice.channel
-                        self.self_vp = await channel.connect()
-                        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("muzyka.mp3"), volume=0.15)
-                        self.self_vp.play(source)
-                        await messages.add_reactions(message)
+                    if payload.member.voice is not None:
+                        if payload.member.voice.channel is not None:
+                            channel = payload.member.voice.channel
+                            self.self_vp = await channel.connect()
+                            source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("muzyka.mp3"), volume=0.15)
+                            self.self_vp.play(source)
+                            await messages.add_reactions(message)
+                    else:
+                        await channel.send(
+                            "<!@{}> https://www.wykop.pl/cdn/c3201142/comment_ySeT49KshJdcuuoj9zkwOPvVLaulUvek.jpg".format(
+                                payload.member.id))
                 if payload.emoji.name == '🔇':
-                    if payload.member.voice.channel is not None or self.self_vp is not None:
-                        await self.self_vp.disconnect()
-                        await messages.add_reactions(message)
+                    if payload.member.voice is not None:
+                        if payload.member.voice.channel is not None or self.self_vp is not None:
+                            await self.self_vp.disconnect()
+                            await messages.add_reactions(message)
+                    else:
+                        await channel.send(
+                            "<!@{}> https://www.wykop.pl/cdn/c3201142/comment_ySeT49KshJdcuuoj9zkwOPvVLaulUvek.jpg".format(
+                                payload.member.id))
 
 
         except discord.HTTPException:
@@ -105,6 +115,10 @@ class MyClient(discord.Client):
 
             await self.user.edit(avatar=image)
 
+        if message.content.startswith('$zbigniew'):
+            for attachment in message.attachments:
+                await message.channel.send(attachment.url)
+
         if message.content.startswith('$czy'):
             user_id = '<@{}>'.format(str(message.author.id))
             if message.author.voice is not None:
@@ -119,6 +133,9 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$doladuj'):
             await jelonki.add_cash(message)
+
+        if message.content.startswith('$daily'):
+            await jelonki.add_daily_cash(message)
 
         if message.content.startswith('$hajs'):
             await jelonki.print_user_cash(client=self, message=message)
