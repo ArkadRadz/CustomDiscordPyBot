@@ -29,7 +29,6 @@ def read_user_data(user_id):
 def write_user_data(user_id, new_value):
     utils.check_if_dir_exists(user_dir)
     user_string = user_dir + "/" + user_id
-    print(new_value)
     utils.check_if_dir_exists(user_dir)
     if utils.check_if_file_exists(user_string):
         with open(user_string, "r+") as json_file:

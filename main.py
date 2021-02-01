@@ -5,6 +5,7 @@ import asyncio
 import re
 import messages
 import setup
+import utils
 from datetime import datetime
 from discord.ext import commands
 
@@ -69,7 +70,7 @@ class MyClient(discord.Client):
                     await self.clear_msg(message)
                     await linie.spin(message=message, bet="500", payload=payload)
                 if payload.emoji.name == '🔊':
-                    if payload.member.voice is not None:
+                    if payload.member.voice is not None and utils.check_if_file_exists("muzyka.mp3"):
                         if payload.member.voice.channel is not None:
                             channel = payload.member.voice.channel
                             self.self_vp = await channel.connect()
@@ -107,7 +108,8 @@ class MyClient(discord.Client):
             await message.channel.send(" ".join(setup.return_emoji_symbols().values()))
 
         if message.content.startswith('$sprzataj'):
-            await self.clear_msg(message)
+            if message.author.id == message.guild.owner_id:
+                await self.clear_msg(message)
 
         if message.content.startswith('$avatar'):
             with open('avatar.jpg', 'rb') as f:
@@ -121,7 +123,7 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$czy'):
             user_id = '<@{}>'.format(str(message.author.id))
-            if message.author.voice is not None:
+            if message.author.voice is not None and utils.check_if_file_exists("test.mp3"):
                 channel = message.author.voice.channel
                 self.self_vp = await channel.connect()
                 source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("test.mp3"), volume=0.15)
@@ -133,6 +135,10 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$doladuj'):
             await jelonki.add_cash(message)
+
+        if message.content.startswith('$debug'):
+            hajs_int = int(re.search("\d+", message.content).group())
+            await linie.modify_cash(message.author.id, hajs_int)
 
         if message.content.startswith('$daily'):
             await jelonki.add_daily_cash(message)

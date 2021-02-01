@@ -237,7 +237,6 @@ async def modify_cash(target_id, value=None):
             final_cash = int(user_cash) + int(cash)
 
     if final_cash > 0:
-        print(final_cash)
         users.write_user_data(str(target_id), {"cash": str(final_cash)})
         return True
     else:

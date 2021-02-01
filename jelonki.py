@@ -103,7 +103,6 @@ async def add_cash(message):
 
     user_id_number = re.search("\d+", user_id.group()).group()
     hajs_int = int(re.search("\d+", hajs.group()).group())
-    # current_hajs = int(users.read_user_data(user_id_number))
     user_data = users.read_user_data(user_id_number)
     current_hajs = int(user_data["cash"])
     new_hajs = current_hajs + hajs_int
