@@ -137,7 +137,14 @@ class MyClient(discord.Client):
             await jelonki.add_cash(message)
 
         if message.content.startswith('$debug'):
-            hajs_int = int(re.search("\d+", message.content).group())
+            hajs_float = float(re.search("\d+\.\d+", message.content).group())
+
+            if hajs_float is None:
+                hajs_int = int(re.search("\d+", message.content).group())
+            else:
+                hajs_int = int(hajs_float * 100)
+
+
             await linie.modify_cash(message.author.id, hajs_int)
 
         if message.content.startswith('$daily'):
