@@ -101,25 +101,25 @@ class MyClient(discord.Client):
 
         if message.content.startswith('$start'):
             await messages.print_bot_message(self, message)
-
-        if message.content.startswith('$juz'):
-            await message.channel.send("Czy mam ustawione emotki? " + str(setup.is_setup_finished()))
-            await message.channel.send("Czy jestem skonfigurowany? " + str(self.is_configured))
-            await message.channel.send(" ".join(setup.return_emoji_symbols().values()))
+        #
+        # if message.content.startswith('$juz'):
+        #     await message.channel.send("Czy mam ustawione emotki? " + str(setup.is_setup_finished()))
+        #     await message.channel.send("Czy jestem skonfigurowany? " + str(self.is_configured))
+        #     await message.channel.send(" ".join(setup.return_emoji_symbols().values()))
 
         if message.content.startswith('$sprzataj'):
             if message.author.id == message.guild.owner_id:
                 await self.clear_msg(message)
 
-        if message.content.startswith('$avatar'):
-            with open('avatar.jpg', 'rb') as f:
-                image = f.read()
+        # if message.content.startswith('$avatar'):
+        #     with open('avatar.jpg', 'rb') as f:
+        #         image = f.read()
+        #
+        #     await self.user.edit(avatar=image)
 
-            await self.user.edit(avatar=image)
-
-        if message.content.startswith('$zbigniew'):
-            for attachment in message.attachments:
-                await message.channel.send(attachment.url)
+        # if message.content.startswith('$zbigniew'):
+        #     for attachment in message.attachments:
+        #         await message.channel.send(attachment.url)
 
         if message.content.startswith('$czy'):
             user_id = '<@{}>'.format(str(message.author.id))
@@ -133,19 +133,22 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send(user_id + " https://www.youtube.com/watch?v=2vbYlqgWZk8")
 
-        if message.content.startswith('$doladuj'):
-            await jelonki.add_cash(message)
+        # if message.content.startswith('$doladuj'):
+        #     await jelonki.add_cash(message)
+        #
+        # if message.content.startswith('$debug'):
+        #     hajs_float = re.search("\d+\.\d+", message.content)
+        #
+        #     if hajs_float is None:
+        #         hajs_int = int(re.search("\d+", message.content).group())
+        #         if len(str(hajs_int)) == 1:
+        #             hajs_int = hajs_int * 100
+        #     else:
+        #         hajs_float = float(hajs_float.group())
+        #         hajs_int = int(hajs_float * 100)
 
-        if message.content.startswith('$debug'):
-            hajs_float = float(re.search("\d+\.\d+", message.content).group())
 
-            if hajs_float is None:
-                hajs_int = int(re.search("\d+", message.content).group())
-            else:
-                hajs_int = int(hajs_float * 100)
-
-
-            await linie.modify_cash(message.author.id, hajs_int)
+            # await linie.modify_cash(message.author.id, hajs_int)
 
         if message.content.startswith('$daily'):
             await jelonki.add_daily_cash(message)
@@ -161,20 +164,21 @@ class MyClient(discord.Client):
                 text_content = "Read existing configuration, set emoji to: " + " ".join(setup.emoji_symbols.values())
                 await message.channel.send(text_content)
 
-            if message.author.id == message.guild.owner_id and self.configure_message_id == 0 and self.is_configured is False:
+            # if message.author.id == message.guild.owner_id and self.configure_message_id == 0 and self.is_configured is False:
+            if self.configure_message_id == 0 and self.is_configured is False:
                 emoji_to_set = setup.return_first_none_emoji()
                 text_content = "React to this message with any emoji aside from " + " ".join(self.command_emojis)
                 text_content = text_content + "to set as visible value: `" + emoji_to_set + "`"
                 setup_msg = await message.channel.send(text_content)
                 self.configure_message_id = setup_msg.id
 
-        if message.content.startswith('$nickname'):
-            if message.author.id == message.guild.owner_id:
-                await self.user.edit(username=message.content[10:])  # 10 due to length of $nickname with space
-
-        if message.content.startswith('$test'):
-            await self.clear_msg(message)
-            await linie.spin(message)
+        # if message.content.startswith('$nickname'):
+        #     if message.author.id == message.guild.owner_id:
+        #         await self.user.edit(username=message.content[10:])  # 10 due to length of $nickname with space
+        #
+        # if message.content.startswith('$test'):
+        #     await self.clear_msg(message)
+        #     await linie.spin(message)
 
     async def clear_msg(self, message):
         def is_me(m):

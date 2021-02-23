@@ -230,11 +230,24 @@ async def modify_cash(target_id, value=None):
     if value is None:
         final_cash = int(user_cash) - 50
     else:
+        print(value)
         if isint(x=value):
-            final_cash = int(user_cash) + int(value)
+            print('value is int')
+            final_value = int(value)
+            if len(str(final_value)) == 1:
+                final_value = final_value * 100
+            if len(str(final_value)) == 2:
+                final_value = final_value * 10
+            print(user_cash)
+            print(final_value)
+            final_cash = int(user_cash) + final_value
+            print(final_cash)
         else:
+            print('value is float')
             cash = float(value) * 100
+            print(cash)
             final_cash = int(user_cash) + int(cash)
+            print(final_cash)
 
     if final_cash > 0:
         users.write_user_data(str(target_id), {"cash": str(final_cash)})
@@ -292,7 +305,7 @@ async def spin(message=None, bet=None, payload=None):
         await message.channel.send(embed_msg)
 
     total += last_spin
-
+    await message.channel.send("total = " + str(total))
     await modify_cash(user_id, value=total)
 
     if total != 0:
